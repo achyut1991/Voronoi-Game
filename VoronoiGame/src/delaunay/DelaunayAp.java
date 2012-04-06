@@ -64,6 +64,7 @@ public class DelaunayAp extends javax.swing.JApplet
     private JLabel circleSwitch = new JLabel("Show Empty Circles");
     private JLabel delaunaySwitch = new JLabel("Show Delaunay Edges");
     private JLabel voronoiSwitch = new JLabel("Show Voronoi Edges");
+    private int playerNo;
 
     /**
      * Main program (used when run as application instead of applet).
@@ -133,6 +134,9 @@ public class DelaunayAp extends javax.swing.JApplet
         circleSwitch.addMouseListener(this);
         delaunaySwitch.addMouseListener(this);
         voronoiSwitch.addMouseListener(this);
+        
+        //Set initial playerTurn
+        playerNo = 1;
 
         // Initialize the radio buttons
         voronoiButton.doClick();
@@ -171,6 +175,8 @@ public class DelaunayAp extends javax.swing.JApplet
     public void mousePressed(MouseEvent e) {
         if (e.getSource() != delaunayPanel) return;
         Pnt point = new Pnt(e.getX(), e.getY());
+        point.setPlayerNo(playerNo);
+        playerNo = (playerNo == 1) ? 2 : 1;
         if (debug ) System.out.println("Click " + point);
         delaunayPanel.addSite(point);
         delaunayPanel.repaint();
@@ -225,7 +231,7 @@ public class DelaunayAp extends javax.swing.JApplet
 @SuppressWarnings("serial")
 class DelaunayPanel extends JPanel {
 
-    public static Color voronoiColor = Color.magenta;
+    public static Color voronoiColor = Color.cyan;
     public static Color delaunayColor = Color.green;
     public static int pointRadius = 3;
 
@@ -287,7 +293,13 @@ class DelaunayPanel extends JPanel {
         int r = pointRadius;
         int x = (int) point.coord(0);
         int y = (int) point.coord(1);
-        g.fillOval(x-r, y-r, r+r, r+r);
+        Image img1 = Toolkit.getDefaultToolkit().getImage("C:/Users/SONY/git/fishingGame/VoronoiGame/fishing.png");
+        Image img2 = Toolkit.getDefaultToolkit().getImage("C:/Users/SONY/git/fishingGame/VoronoiGame/fishingRed.png");
+        if(point.getPlayerNo()==1)
+        	g.drawImage(img2, x-14, y-7, null);
+        else
+        	g.drawImage(img1, x-14, y-7, null);
+        
     }
 
     /**
@@ -396,6 +408,7 @@ class DelaunayPanel extends JPanel {
                     vertices[i++] = tri.getCircumcenter();
                 draw(vertices, withFill? getColor(site) : null);
                 if (withSites) draw(site);
+                System.out.println(site.getPlayerNo());
             }
     }
 

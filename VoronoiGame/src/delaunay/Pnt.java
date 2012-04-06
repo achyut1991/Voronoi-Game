@@ -36,6 +36,7 @@ package delaunay;
 public class Pnt {
 
     private double[] coordinates;          // The point's coordinates
+    private int playerNo;
 
     /**
      * Constructor.
@@ -47,6 +48,14 @@ public class Pnt {
         // constructor with double[] as its argument.
         coordinates = new double[coords.length];
         System.arraycopy(coords, 0, coordinates, 0, coords.length);
+    }
+    
+    public int getPlayerNo(){
+    	return playerNo;
+    }
+    
+    public void setPlayerNo(int playerNo){
+    	this.playerNo = playerNo;
     }
 
     @Override

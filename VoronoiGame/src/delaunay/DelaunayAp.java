@@ -73,12 +73,13 @@ public class DelaunayAp extends javax.swing.JApplet
         DelaunayAp applet = new DelaunayAp();    // Create applet
         applet.init();                           // Applet initialization
         JFrame dWindow = new JFrame();           // Create window
-        dWindow.setSize(700, 500);               // Set window size
+        dWindow.setSize(800, 500);               // Set window size
         dWindow.setTitle(windowTitle);           // Set window title
         dWindow.setLayout(new BorderLayout());   // Specify layout manager
         dWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                                                  // Specify closing behavior
         dWindow.add(applet, "Center");           // Place applet into window
+        dWindow.setResizable(false);			 // Set Window non resizable
         dWindow.setVisible(true);                // Show the window
     }
 
@@ -293,12 +294,13 @@ class DelaunayPanel extends JPanel {
         int r = pointRadius;
         int x = (int) point.coord(0);
         int y = (int) point.coord(1);
-        Image img1 = Toolkit.getDefaultToolkit().getImage("C:/Users/SONY/git/fishingGame/VoronoiGame/fishing.png");
-        Image img2 = Toolkit.getDefaultToolkit().getImage("C:/Users/SONY/git/fishingGame/VoronoiGame/fishingRed.png");
+        Image img1 = Toolkit.getDefaultToolkit().getImage("oldfish.png");
+        Image img2 = Toolkit.getDefaultToolkit().getImage("fishingRed.png");
+        g.fillOval(x-r, y-r, r+r, r+r);
         if(point.getPlayerNo()==1)
-        	g.drawImage(img2, x-14, y-7, null);
+        	g.drawImage(img1, x-25, y-12, null);
         else
-        	g.drawImage(img1, x-14, y-7, null);
+        	g.drawImage(img2, x-14, y-7, null);
         
     }
 
@@ -355,12 +357,16 @@ class DelaunayPanel extends JPanel {
 
         // Flood the drawing area with a "background" color
         Color temp = g.getColor();
-        if (!controller.isVoronoi()) g.setColor(delaunayColor);
+        /*if (!controller.isVoronoi()) g.setColor(delaunayColor);
         else if (dt.contains(initialTriangle)) g.setColor(this.getBackground());
         else g.setColor(voronoiColor);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
-        g.setColor(temp);
-
+        g.setColor(temp);*/
+        
+        //Set background image
+        Image backgroundImage = Toolkit.getDefaultToolkit().getImage("map1.png");
+        g.drawImage(backgroundImage, 0, 0, null);
+        
         // If no colors then we can clear the color table
         if (!controller.isColorful()) colorTable.clear();
 

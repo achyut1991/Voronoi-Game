@@ -243,6 +243,9 @@ class DelaunayPanel extends JPanel {
     private static int initialSize = 10000;     // Size of initial triangle
     private Graphics g;                         // Stored graphics context
     private Random random = new Random();       // Source of random numbers
+    private int xp[] = {0,800,800,0};
+    private int yp[] = {0,0,600,600};
+    private Polygon fullPolygon = new Polygon(xp,yp,4);
 
     /**
      * Create and initialize the DT.
@@ -442,5 +445,42 @@ class DelaunayPanel extends JPanel {
     	area /=2;
     	return area;
     }
+    
+ // Returns 1 if the lines intersect, otherwise 0. In addition, if the lines 
+ // intersect the intersection point may be stored in the floats i_x and i_y.
+ public Pnt get_line_intersection( Pnt p0, Pnt p1, Pnt p2, Pnt p3) {	 
+	 double p0_x= p0.coord(0);
+	 double p0_y= p0.coord(1);
+	 double p1_x= p1.coord(0);
+	 double p1_y= p1.coord(1);
+     double p2_x= p2.coord(0);
+     double p2_y= p2.coord(1);
+     double p3_x= p3.coord(0);
+     double p3_y= p3.coord(1);
+     double s1_x, s1_y, s2_x, s2_y;
+     double s, t;
+     Pnt intersection = null;
+     
+     s1_x = p1_x - p0_x;     
+     s1_y = p1_y - p0_y;
+     s2_x = p3_x - p2_x;     
+     s2_y = p3_y - p2_y;
+
+     s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+     t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+     if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+     {
+         // Collision detected
+         /*if (intersection.coord(0) != NULL)
+        	 intersection.coord(0) = p0_x + (t * s1_x);
+         if (intersection.coord(1) != NULL)
+        	 intersection.coord(1) = p0_y + (t * s1_y);*/
+    	 intersection = new Pnt(p0_x + (t * s1_x),p0_y + (t * s1_y));
+         return intersection;
+     }
+
+     return intersection; // No collision
+ }
 
 }

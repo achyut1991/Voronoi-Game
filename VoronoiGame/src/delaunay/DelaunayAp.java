@@ -431,5 +431,16 @@ class DelaunayPanel extends JPanel {
             draw(c, radius, null);
         }
     }
+    
+    public double polygonArea (Pnt[] polygon) {
+    	double area = 0;
+    	for(int i=0;i<polygon.length-1;i++) {
+    		area += polygon[i].coord(0)*polygon[i+1].coord(1) - polygon[i+1].coord(0)*polygon[i].coord(1);
+    	}
+    	System.out.println(polygon[polygon.length-1].coord(0) + "-" + polygon[polygon.length-1].coord(1) + " ");
+    	area += polygon[polygon.length-1].coord(0)*polygon[0].coord(1) - polygon[0].coord(0)*polygon[polygon.length-1].coord(1);
+    	area /=2;
+    	return area;
+    }
 
 }

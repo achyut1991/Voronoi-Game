@@ -172,6 +172,7 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 			System.out.println(((AbstractButton) e.getSource()).getText());
 		if (e.getSource() == clearButton)
 			delaunayPanel.clear();
+		playerNo = 1;
 		delaunayPanel.repaint();
 	}
 
@@ -281,14 +282,28 @@ class DelaunayPanel extends JPanel {
 	private int yp[] = { 0, 0, 600, 600 };
 	private Pnt[] fullPolygon = { new Pnt(0, 0), new Pnt(800, 0),
 			new Pnt(800, 600), new Pnt(0, 600) };
-	private Pnt[] islandPolygon = { new Pnt(337, 177), new Pnt(362, 107),
-			new Pnt(496, 74), new Pnt(549, 170), new Pnt(442, 239) };
+	private Pnt[] islandPolygon = { new Pnt(351, 148), new Pnt(348, 160),
+			new Pnt(346, 170), new Pnt(345, 185), new Pnt(352, 201),
+			new Pnt(367, 214), new Pnt(392, 227), new Pnt(422, 235),
+			new Pnt(454, 242), new Pnt(484, 231), new Pnt(494, 220),
+			new Pnt(506, 198), new Pnt(521, 188), new Pnt(542, 175),
+			new Pnt(553, 162), new Pnt(550, 139), new Pnt(540, 117),
+			new Pnt(519, 102), new Pnt(498, 93), new Pnt(467, 94),
+			new Pnt(456, 87), new Pnt(439, 70), new Pnt(415, 75),
+			new Pnt(409, 87), new Pnt(403, 102), new Pnt(398, 106),
+			new Pnt(372, 104), new Pnt(363, 114), new Pnt(355, 128) };
+	private Color greenTransp = new Color(0.0f, 1.0f, 0.0f, 0.1f);
+    private Color blueTransp = new Color(0.0f, 0.0f, 1.0f, 0.1f);
+    private Color redTransp = new Color(1.0f, 0.0f, 0.0f, 0.4f);
+    private Player player1,player2;
 
 	/**
 	 * Create and initialize the DT.
 	 */
 	public DelaunayPanel(DelaunayAp controller) {
 		this.controller = controller;
+		player1 = new Player("Player 1");
+		player2 = new Player("Player 2");
 		initialTriangle = new Triangle(new Pnt(-initialSize, -initialSize),
 				new Pnt(initialSize, -initialSize), new Pnt(0, initialSize));
 		dt = new Triangulation(initialTriangle);
@@ -426,6 +441,16 @@ class DelaunayPanel extends JPanel {
 		Image backgroundImage = Toolkit.getDefaultToolkit()
 				.getImage("map1.png");
 		g.drawImage(backgroundImage, 0, 0, null);
+		int[] x = new int[islandPolygon.length];
+		int[] y = new int[islandPolygon.length];
+		for (int i = 0; i < islandPolygon.length; i++) {
+			x[i] = (int) islandPolygon[i].coord(0);
+			y[i] = (int) islandPolygon[i].coord(1);
+		}
+		g.setColor(redTransp);
+		g.fillPolygon(x,y,islandPolygon.length);
+		g.setColor(temp);
+		g.drawPolygon(x, y, islandPolygon.length);
 
 		// If no colors then we can clear the color table
 		if (!controller.isColorful())
@@ -473,6 +498,8 @@ class DelaunayPanel extends JPanel {
 	public void drawAllVoronoi(boolean withFill, boolean withSites) {
 		// Keep track of sites done; no drawing for initial triangles sites
 		HashSet<Pnt> done = new HashSet<Pnt>(initialTriangle);
+		player1.resetScore();
+		player2.resetScore();
 		for (Triangle triangle : dt)
 			for (Pnt site : triangle) {
 				if (done.contains(site))
@@ -483,12 +510,27 @@ class DelaunayPanel extends JPanel {
 				int i = 0;
 				for (Triangle tri : list)
 					vertices[i++] = tri.getCircumcenter();
-				double area = draw(vertices, withFill ? getColor(site) : null);
+				Color polyCol;
+				if(site.getPlayerNo()==1){
+					polyCol = greenTransp;
+				}
+				else{
+					polyCol = blueTransp;
+				}
+				double area = draw(vertices, polyCol);
+				if(site.getPlayerNo()==1){
+					player1.updateScore(area);
+				}
+				else{
+					player2.updateScore(area);
+				}
 				if (withSites)
 					draw(site);
 				System.out.println("Point (" + site.coord(0) + ","
 						+ site.coord(1) + ") with voronoi area = " + area);
 			}
+		System.out.println("P1Score = " + player1.getScore());
+		System.out.println("P2Score = " + player2.getScore());
 	}
 
 	/**

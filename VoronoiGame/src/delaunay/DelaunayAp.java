@@ -22,15 +22,37 @@ package delaunay;
  * DEALINGS IN THE SOFTWARE.
  */
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Label;
+import java.awt.Polygon;
+import java.awt.Shape;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Area;
+import java.awt.geom.PathIterator;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import javax.swing.*;
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.SwingUtilities;
 
 /**
  * The Delauany applet.
@@ -245,7 +267,8 @@ class DelaunayPanel extends JPanel {
     private Random random = new Random();       // Source of random numbers
     private int xp[] = {0,800,800,0};
     private int yp[] = {0,0,600,600};
-    private Polygon fullPolygon = new Polygon(xp,yp,4);
+    private Pnt[] fullPolygon = {new Pnt(0,0),new Pnt(800,0),new Pnt(800,600),new Pnt(0,600)};
+    private Pnt[] islandPolygon ={new Pnt(337,177),new Pnt(362,107),new Pnt(496,74),new Pnt(549,170),new Pnt(442,239)}; 
 
     /**
      * Create and initialize the DT.
@@ -331,7 +354,8 @@ class DelaunayPanel extends JPanel {
      * @param polygon an array of polygon vertices
      * @param fillColor null implies no fill
      */
-    public void draw (Pnt[] polygon, Color fillColor) {
+    public double draw (Pnt[] polygon, Color fillColor) {
+    	double area = 0;
         int[] x = new int[polygon.length];
         int[] y = new int[polygon.length];
         for (int i = 0; i < polygon.length; i++) {
@@ -344,8 +368,13 @@ class DelaunayPanel extends JPanel {
             g.fillPolygon(x, y, polygon.length);
             g.setColor(temp);
         }
+        area += polygonArea(getintersection(polygon, fullPolygon));
+        area -= polygonArea(getintersection(polygon, islandPolygon));
         g.drawPolygon(x, y, polygon.length);
+        return area;
     }
+    
+    
 
     /* Higher Level Drawing Methods */
 
@@ -415,9 +444,9 @@ class DelaunayPanel extends JPanel {
                 int i = 0;
                 for (Triangle tri: list)
                     vertices[i++] = tri.getCircumcenter();
-                draw(vertices, withFill? getColor(site) : null);
+                double area = draw(vertices, withFill? getColor(site) : null);
                 if (withSites) draw(site);
-                System.out.println(site.getPlayerNo());
+                System.out.println("Point (" + site.coord(0) + "," + site.coord(1) + ") with voronoi area = " + area);
             }
     }
 
@@ -437,50 +466,100 @@ class DelaunayPanel extends JPanel {
     
     public double polygonArea (Pnt[] polygon) {
     	double area = 0;
+    	if(polygon.length!=0){
     	for(int i=0;i<polygon.length-1;i++) {
     		area += polygon[i].coord(0)*polygon[i+1].coord(1) - polygon[i+1].coord(0)*polygon[i].coord(1);
     	}
-    	System.out.println(polygon[polygon.length-1].coord(0) + "-" + polygon[polygon.length-1].coord(1) + " ");
     	area += polygon[polygon.length-1].coord(0)*polygon[0].coord(1) - polygon[0].coord(0)*polygon[polygon.length-1].coord(1);
     	area /=2;
-    	return area;
+    	}
+    	return Math.abs(area);
     }
     
- // Returns 1 if the lines intersect, otherwise 0. In addition, if the lines 
- // intersect the intersection point may be stored in the floats i_x and i_y.
- public Pnt get_line_intersection( Pnt p0, Pnt p1, Pnt p2, Pnt p3) {	 
-	 double p0_x= p0.coord(0);
-	 double p0_y= p0.coord(1);
-	 double p1_x= p1.coord(0);
-	 double p1_y= p1.coord(1);
-     double p2_x= p2.coord(0);
-     double p2_y= p2.coord(1);
-     double p3_x= p3.coord(0);
-     double p3_y= p3.coord(1);
-     double s1_x, s1_y, s2_x, s2_y;
-     double s, t;
-     Pnt intersection = null;
-     
-     s1_x = p1_x - p0_x;     
-     s1_y = p1_y - p0_y;
-     s2_x = p3_x - p2_x;     
-     s2_y = p3_y - p2_y;
+    public Pnt[] getintersection (Pnt[] polygon1, Pnt[] polygon2) {
+        Pnt[] intersectionPolygon = null;
+        int[] x1 = new int[polygon1.length];
+        int[] y1 = new int[polygon1.length];
+        int[] x2 = new int[polygon2.length];
+        int[] y2 = new int[polygon2.length];
+        for (int i = 0; i < polygon1.length; i++) {
+                x1[i] = (int) polygon1[i].coord(0);
+                y1[i] = (int) polygon1[i].coord(1);
+        }
+        for (int i = 0; i < polygon2.length; i++) {
+                x2[i] = (int) polygon2[i].coord(0);
+                y2[i] = (int) polygon2[i].coord(1);
+        }
+        Polygon poly1 = new Polygon(x1,y1,polygon1.length);
+        Polygon poly2 = new Polygon(x2,y2,polygon2.length);
+        Area a1 = new Area(poly1);
+        Area a2 = new Area(poly2);
+        a1.intersect(a2);
+        intersectionPolygon = traversePath(a1);
+        //System.out.println("Interpoly : " + intersectionPolygon.length);
+        return intersectionPolygon;       
+}
+    
+    private static Pnt[] traversePath(Shape s) {
+        PathIterator pit = s.getPathIterator(null);
+        List<Pnt> points = new ArrayList<Pnt>();
+        double[] coords = new double[6];
+        Pnt temp;
+        while(!pit.isDone()) {
+            int type = pit.currentSegment(coords);
+            switch(type) {
+                case PathIterator.SEG_MOVETO:
+                    double x = coords[0];
+                    double y = coords[1];
+                    temp = new Pnt(x,y);
+                    points.add(temp);
+                    //System.out.printf("MOVETO:  x = %.2f  y = %.2f%n", x, y);
+                    break;
+                case PathIterator.SEG_LINETO:
+                    x = coords[0];
+                    y = coords[1];
+                    temp = new Pnt(x,y);
+                    points.add(temp);
+                    //System.out.printf("LINETO: x = %.2f  y = %.2f%n", x, y);
+                    break;
+                case PathIterator.SEG_QUADTO:
+                    double ctrlx = coords[0];
+                    double ctrly = coords[1];
+                    x = coords[2];
+                    y = coords[3];
+                    temp = new Pnt(x,y);
+                    points.add(temp);
+                    /*System.out.printf("QUADTO: ctrlx = %5.1f  ctrly = %.1f%n" +
+                                      "        x = %5.1f      y = %.1f%n",
+                                       ctrlx, ctrly, x, y);*/
+                    break;
+                case PathIterator.SEG_CUBICTO:
+                    double ctrlx1 = coords[0];
+                    double ctrly1 = coords[1];
+                    double ctrlx2 = coords[2];
+                    double ctrly2 = coords[3];
+                    x = coords[4];
+                    y = coords[5];
+                    temp = new Pnt(x,y);
+                    points.add(temp);
+                   /* System.out.printf("CUBICTO: ctrlx1 = %5.1f  ctrly1 = %.1f%n" +
+                                      "         ctrlx2 = %5.1f  ctrly2 = %.1f%n" +
+                                      "         x = %5.1f       y = %.1f%n",
+                                       ctrlx1, ctrly1, ctrlx2, ctrly2, x, y);*/
+                    break;
+                case PathIterator.SEG_CLOSE:
+                    //System.out.println("CLOSE");
+            }
+            pit.next();
+        }
+        Pnt[] retPoint = new Pnt[points.size()];
+        for(int i=0;i<points.size();i++){
+        	retPoint[i] = points.get(i);
+        }
+        return retPoint;
+    }
+    
+    
 
-     s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
-     t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
-
-     if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
-     {
-         // Collision detected
-         /*if (intersection.coord(0) != NULL)
-        	 intersection.coord(0) = p0_x + (t * s1_x);
-         if (intersection.coord(1) != NULL)
-        	 intersection.coord(1) = p0_y + (t * s1_y);*/
-    	 intersection = new Pnt(p0_x + (t * s1_x),p0_y + (t * s1_y));
-         return intersection;
-     }
-
-     return intersection; // No collision
- }
 
 }

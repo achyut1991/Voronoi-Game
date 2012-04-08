@@ -269,8 +269,6 @@ class DelaunayPanel extends JPanel {
     private int yp[] = {0,0,600,600};
     private Pnt[] fullPolygon = {new Pnt(0,0),new Pnt(800,0),new Pnt(800,600),new Pnt(0,600)};
     private Pnt[] islandPolygon ={new Pnt(337,177),new Pnt(362,107),new Pnt(496,74),new Pnt(549,170),new Pnt(442,239)}; 
-    private Color greenTransp = new Color(0.0f, 1.0f, 0.0f, 0.1f);
-    private Color blueTransp = new Color(0.0f, 0.0f, 1.0f, 0.1f);
 
     /**
      * Create and initialize the DT.
@@ -446,12 +444,7 @@ class DelaunayPanel extends JPanel {
                 int i = 0;
                 for (Triangle tri: list)
                     vertices[i++] = tri.getCircumcenter();
-                Color polyColor;
-                if(site.getPlayerNo()==1)
-                	polyColor = greenTransp;
-                else
-                	polyColor = blueTransp;
-                double area = draw(vertices, polyColor);
+                double area = draw(vertices, withFill? getColor(site) : null);
                 if (withSites) draw(site);
                 System.out.println("Point (" + site.coord(0) + "," + site.coord(1) + ") with voronoi area = " + area);
             }

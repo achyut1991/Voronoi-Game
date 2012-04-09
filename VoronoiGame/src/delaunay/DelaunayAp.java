@@ -80,11 +80,12 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 			"Delaunay Triangulation");
 	private JButton clearButton = new JButton("Clear");
 	private JCheckBox colorfulBox = new JCheckBox("More Colorful");
-	private DelaunayPanel delaunayPanel = new DelaunayPanel(this);
+	private DelaunayPanel delaunayPanel;
 	private JLabel circleSwitch = new JLabel("Show Empty Circles");
 	private JLabel delaunaySwitch = new JLabel("Show Delaunay Edges");
 	private JLabel voronoiSwitch = new JLabel("Show Voronoi Edges");
 	private int playerNo;
+	private int mapChoice;
 
 	/**
 	 * Main program (used when run as application instead of applet).
@@ -142,6 +143,10 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		switchPanel.add(new Label("     ")); // Spacing
 		switchPanel.add(voronoiSwitch);
 		this.add(switchPanel, "South");
+		
+		//get map choice here
+		mapChoice = 1;
+		delaunayPanel = new DelaunayPanel(this,mapChoice);
 
 		// Build the delaunay panel
 		delaunayPanel.setBackground(Color.gray);
@@ -203,8 +208,12 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		if (e.getSource() != delaunayPanel)
 			return;
 		Pnt point = new Pnt(e.getX(), e.getY());
-		Polygon islandPoly = delaunayPanel.getIslandPoly();
-		if(islandPoly.contains(e.getX(), e.getY())){
+		Polygon islandPoly1 = delaunayPanel.getIslandPoly1();
+		Polygon islandPoly2 = delaunayPanel.getIslandPoly2();
+		if(islandPoly1.contains(e.getX(), e.getY())){
+			return;
+		}
+		if(islandPoly2.contains(e.getX(), e.getY())){
 			return;
 		}
 		point.setPlayerNo(playerNo);
@@ -278,11 +287,10 @@ class DelaunayPanel extends JPanel {
 	private static int initialSize = 10000; // Size of initial triangle
 	private Graphics g; // Stored graphics context
 	private Random random = new Random(); // Source of random numbers
-	private int xp[] = { 0, 800, 800, 0 };
-	private int yp[] = { 0, 0, 600, 600 };
 	private Pnt[] fullPolygon = { new Pnt(0, 0), new Pnt(800, 0),
 			new Pnt(800, 600), new Pnt(0, 600) };
-	private Pnt[] islandPolygon = { new Pnt(351, 148), new Pnt(348, 160),
+	
+	private Pnt[] islandPolygon1 = { new Pnt(351, 148), new Pnt(348, 160),
 			new Pnt(346, 170), new Pnt(345, 185), new Pnt(352, 201),
 			new Pnt(367, 214), new Pnt(392, 227), new Pnt(422, 235),
 			new Pnt(454, 242), new Pnt(484, 231), new Pnt(494, 220),
@@ -292,16 +300,28 @@ class DelaunayPanel extends JPanel {
 			new Pnt(456, 87), new Pnt(439, 70), new Pnt(415, 75),
 			new Pnt(409, 87), new Pnt(403, 102), new Pnt(398, 106),
 			new Pnt(372, 104), new Pnt(363, 114), new Pnt(355, 128) };
+	
+	private Pnt[] islandPolygon2 = { new Pnt(351, 148), new Pnt(348, 160) };
+	
+	private Pnt[] islandPolygon3 = { new Pnt(351, 148), new Pnt(348, 160),
+			new Pnt(346, 170), new Pnt(345, 185), new Pnt(352, 201) };
+	
+	private Pnt[] islandPolygon4 = { new Pnt(351, 148), new Pnt(348, 160),
+			new Pnt(346, 170), new Pnt(345, 185), new Pnt(352, 201),
+			new Pnt(367, 214), new Pnt(392, 227), new Pnt(422, 235) };
+	
 	private Color greenTransp = new Color(0.0f, 1.0f, 0.0f, 0.1f);
     private Color blueTransp = new Color(0.0f, 0.0f, 1.0f, 0.1f);
     private Color redTransp = new Color(1.0f, 0.0f, 0.0f, 0.4f);
     private Player player1,player2;
+    private int mapChoice;
 
 	/**
 	 * Create and initialize the DT.
 	 */
-	public DelaunayPanel(DelaunayAp controller) {
+	public DelaunayPanel(DelaunayAp controller, int map) {
 		this.controller = controller;
+		mapChoice = map;
 		player1 = new Player("Player 1");
 		player2 = new Player("Player 2");
 		initialTriangle = new Triangle(new Pnt(-initialSize, -initialSize),
@@ -410,7 +430,14 @@ class DelaunayPanel extends JPanel {
 			g.setColor(temp);
 		}
 		area += polygonArea(getintersection(polygon, fullPolygon));
-		area -= polygonArea(getintersection(polygon, islandPolygon));
+		if(mapChoice == 1){
+			area -= polygonArea(getintersection(polygon, islandPolygon1));
+			area -= polygonArea(getintersection(polygon, islandPolygon2));
+		}
+		else if (mapChoice == 2){
+			area -= polygonArea(getintersection(polygon, islandPolygon3));
+			area -= polygonArea(getintersection(polygon, islandPolygon4));
+		}
 		g.drawPolygon(x, y, polygon.length);
 		return area;
 	}
@@ -438,20 +465,52 @@ class DelaunayPanel extends JPanel {
 		 */
 
 		// Set background image
-		Image backgroundImage = Toolkit.getDefaultToolkit()
-				.getImage("map1.png");
-		g.drawImage(backgroundImage, 0, 0, null);
-		int[] x = new int[islandPolygon.length];
-		int[] y = new int[islandPolygon.length];
-		for (int i = 0; i < islandPolygon.length; i++) {
-			x[i] = (int) islandPolygon[i].coord(0);
-			y[i] = (int) islandPolygon[i].coord(1);
+		if (mapChoice==1){
+			Image backgroundImage = Toolkit.getDefaultToolkit()
+					.getImage("map1.png");
+			g.drawImage(backgroundImage, 0, 0, null);
+			int[] x1 = new int[islandPolygon1.length];
+			int[] y1 = new int[islandPolygon1.length];
+			for (int i = 0; i < islandPolygon1.length; i++) {
+				x1[i] = (int) islandPolygon1[i].coord(0);
+				y1[i] = (int) islandPolygon1[i].coord(1);
+			}
+			int[] x2 = new int[islandPolygon2.length];
+			int[] y2 = new int[islandPolygon2.length];
+			for (int i = 0; i < islandPolygon2.length; i++) {
+				x2[i] = (int) islandPolygon2[i].coord(0);
+				y2[i] = (int) islandPolygon2[i].coord(1);
+			}
+			g.setColor(redTransp);
+			g.fillPolygon(x1,y1,islandPolygon1.length);
+			g.fillPolygon(x2,y2,islandPolygon2.length);
+			g.setColor(temp);
+			g.drawPolygon(x1, y1, islandPolygon1.length);
+			g.drawPolygon(x2, y2, islandPolygon2.length);
 		}
-		g.setColor(redTransp);
-		g.fillPolygon(x,y,islandPolygon.length);
-		g.setColor(temp);
-		g.drawPolygon(x, y, islandPolygon.length);
-
+		else if(mapChoice==2){
+			Image backgroundImage = Toolkit.getDefaultToolkit()
+					.getImage("map2.png");
+			g.drawImage(backgroundImage, 0, 0, null);
+			int[] x1 = new int[islandPolygon3.length];
+			int[] y1 = new int[islandPolygon3.length];
+			for (int i = 0; i < islandPolygon3.length; i++) {
+				x1[i] = (int) islandPolygon3[i].coord(0);
+				y1[i] = (int) islandPolygon3[i].coord(1);
+			}
+			int[] x2 = new int[islandPolygon4.length];
+			int[] y2 = new int[islandPolygon4.length];
+			for (int i = 0; i < islandPolygon4.length; i++) {
+				x2[i] = (int) islandPolygon4[i].coord(0);
+				y2[i] = (int) islandPolygon4[i].coord(1);
+			}
+			g.setColor(redTransp);
+			g.fillPolygon(x1,y1,islandPolygon3.length);
+			g.fillPolygon(x2,y2,islandPolygon4.length);
+			g.setColor(temp);
+			g.drawPolygon(x1, y1, islandPolygon3.length);	
+			g.drawPolygon(x2, y2, islandPolygon4.length);			
+		}
 		// If no colors then we can clear the color table
 		if (!controller.isColorful())
 			colorTable.clear();
@@ -649,14 +708,49 @@ class DelaunayPanel extends JPanel {
 		return retPoint;
 	}
 	
-	public Polygon getIslandPoly() {
-		int[] x = new int[islandPolygon.length];
-		int[] y = new int[islandPolygon.length];
-		for (int i = 0; i < islandPolygon.length; i++) {
-			x[i] = (int) islandPolygon[i].coord(0);
-			y[i] = (int) islandPolygon[i].coord(1);
+	public Polygon getIslandPoly1() {
+		Polygon poly = null;
+		if(mapChoice==1){
+			int[] x = new int[islandPolygon1.length];
+			int[] y = new int[islandPolygon1.length];
+			for (int i = 0; i < islandPolygon1.length; i++) {
+				x[i] = (int) islandPolygon1[i].coord(0);
+				y[i] = (int) islandPolygon1[i].coord(1);
+			}
+			poly = new Polygon(x,y,islandPolygon1.length);
 		}
-		Polygon poly = new Polygon(x,y,islandPolygon.length);
+		else if (mapChoice==2){
+			int[] x = new int[islandPolygon3.length];
+			int[] y = new int[islandPolygon3.length];
+			for (int i = 0; i < islandPolygon3.length; i++) {
+				x[i] = (int) islandPolygon3[i].coord(0);
+				y[i] = (int) islandPolygon3[i].coord(1);
+			}
+			poly = new Polygon(x,y,islandPolygon3.length);
+		}
+		return poly;
+	}
+	
+	public Polygon getIslandPoly2() {
+		Polygon poly = null;
+		if(mapChoice==1){
+			int[] x = new int[islandPolygon2.length];
+			int[] y = new int[islandPolygon2.length];
+			for (int i = 0; i < islandPolygon2.length; i++) {
+				x[i] = (int) islandPolygon2[i].coord(0);
+				y[i] = (int) islandPolygon2[i].coord(1);
+			}
+			poly = new Polygon(x,y,islandPolygon2.length);
+		}
+		else if (mapChoice==2){
+			int[] x = new int[islandPolygon4.length];
+			int[] y = new int[islandPolygon4.length];
+			for (int i = 0; i < islandPolygon4.length; i++) {
+				x[i] = (int) islandPolygon4[i].coord(0);
+				y[i] = (int) islandPolygon4[i].coord(1);
+			}
+			poly = new Polygon(x,y,islandPolygon4.length);
+		}
 		return poly;
 	}
 

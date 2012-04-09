@@ -35,6 +35,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,13 +75,18 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 	private boolean debug = true; // Used for debugging
 	private Component currentSwitch = null; // Entry-switch that mouse is in
 
-	private static String windowTitle = "Voronoi/Delaunay Window";
+	private static String windowTitle = "Fishnoi";
 	private JRadioButton voronoiButton = new JRadioButton("Voronoi Diagram");
 	private JRadioButton delaunayButton = new JRadioButton(
 			"Delaunay Triangulation");
-	private JButton clearButton = new JButton("Clear");
+	private JButton map1Button = new JButton("Map 1");
+	private JButton map2Button = new JButton("Map 2");
 	private JCheckBox colorfulBox = new JCheckBox("More Colorful");
 	private DelaunayPanel delaunayPanel;
+	private JLabel p1Label = new JLabel("Player1 Score: ");
+	private JLabel p2Label = new JLabel("Player2 Score: ");
+	public static JLabel p1Score = new JLabel("0");
+	public static JLabel p2Score = new JLabel("0");
 	private JLabel circleSwitch = new JLabel("Show Empty Circles");
 	private JLabel delaunaySwitch = new JLabel("Show Delaunay Edges");
 	private JLabel voronoiSwitch = new JLabel("Show Voronoi Edges");
@@ -128,20 +134,20 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		group.add(voronoiButton);
 		group.add(delaunayButton);
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(voronoiButton);
-		buttonPanel.add(delaunayButton);
-		buttonPanel.add(clearButton);
+		//buttonPanel.add(voronoiButton);
+		//buttonPanel.add(delaunayButton);
+		buttonPanel.add(map1Button);
 		buttonPanel.add(new JLabel("          ")); // Spacing
-		buttonPanel.add(colorfulBox);
+		buttonPanel.add(map2Button);
 		this.add(buttonPanel, "North");
 
 		// Add the mouse-entry switches
 		JPanel switchPanel = new JPanel();
-		switchPanel.add(circleSwitch);
-		switchPanel.add(new Label("     ")); // Spacing
-		switchPanel.add(delaunaySwitch);
-		switchPanel.add(new Label("     ")); // Spacing
-		switchPanel.add(voronoiSwitch);
+		switchPanel.add(p1Label);
+		switchPanel.add(p1Score);
+		switchPanel.add(new JLabel("             "));
+		switchPanel.add(p2Label);
+		switchPanel.add(p2Score); // Spacing
 		this.add(switchPanel, "South");
 		
 		//get map choice here
@@ -155,7 +161,8 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		// Register the listeners
 		voronoiButton.addActionListener(this);
 		delaunayButton.addActionListener(this);
-		clearButton.addActionListener(this);
+		map1Button.addActionListener(this);
+		map2Button.addActionListener(this);
 		colorfulBox.addActionListener(this);
 		delaunayPanel.addMouseListener(this);
 		circleSwitch.addMouseListener(this);
@@ -175,8 +182,12 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 	public void actionPerformed(ActionEvent e) {
 		if (debug)
 			System.out.println(((AbstractButton) e.getSource()).getText());
-		if (e.getSource() == clearButton)
-			delaunayPanel.clear();
+		if (e.getSource() == map1Button){
+			delaunayPanel.clear(1);
+		}
+		else if(e.getSource() == map2Button){
+			delaunayPanel.clear(2);
+		}
 		playerNo = 1;
 		delaunayPanel.repaint();
 	}
@@ -343,8 +354,9 @@ class DelaunayPanel extends JPanel {
 	/**
 	 * Re-initialize the DT.
 	 */
-	public void clear() {
+	public void clear(int map) {
 		dt = new Triangulation(initialTriangle);
+		mapChoice = map;
 	}
 
 	/**
@@ -590,6 +602,10 @@ class DelaunayPanel extends JPanel {
 			}
 		System.out.println("P1Score = " + player1.getScore());
 		System.out.println("P2Score = " + player2.getScore());
+		DecimalFormat formatter = new DecimalFormat("#0.00");
+		DelaunayAp.p1Score.setText("" + formatter.format(player1.getScore()));
+		DelaunayAp.p2Score.setText("" + formatter.format(player2.getScore()));
+		
 	}
 
 	/**

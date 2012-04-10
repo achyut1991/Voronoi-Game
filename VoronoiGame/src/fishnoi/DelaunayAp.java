@@ -1,24 +1,4 @@
-package delaunay;
-
-/*
- * Copyright (c) 2005, 2007 by L. Paul Chew.
- *
- * Permission is hereby granted, without written agreement and without
- * license or royalty fees, to use, copy, modify, and distribute this
- * software and its documentation for any purpose, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- */
+package fishnoi;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -55,26 +35,11 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 
-/**
- * The Delauany applet.
- * 
- * Creates and displays a Delaunay Triangulation (DT) or a Voronoi Diagram
- * (VoD). Has a main program so it is an application as well as an applet.
- * 
- * @author Paul Chew
- * 
- *         Created July 2005. Derived from an earlier, messier version.
- * 
- *         Modified December 2007. Updated some of the Triangulation methods.
- *         Added the "Colorful" checkbox. Reorganized the interface between
- *         DelaunayAp and DelaunayPanel. Added code to find a Voronoi cell.
- * 
- */
 @SuppressWarnings("serial")
 public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		ActionListener, MouseListener {
 
-	private boolean debug = false; // Used for debugging
+	private boolean debug = false; 
 	private Component currentSwitch = null; // Entry-switch that mouse is in
 
 	private static String windowTitle = "Fishnoi";
@@ -96,27 +61,19 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 	private int mapChoice;
 	private int turn;
 
-	/**
-	 * Main program (used when run as application instead of applet).
-	 */
 	public static void main(String[] args) {
-		DelaunayAp applet = new DelaunayAp(); // Create applet
-		applet.init(); // Applet initialization
-		JFrame dWindow = new JFrame(); // Create window
-		dWindow.setSize(800, 500); // Set window size
-		dWindow.setTitle(windowTitle); // Set window title
-		dWindow.setLayout(new BorderLayout()); // Specify layout manager
+		DelaunayAp applet = new DelaunayAp(); 
+		applet.init(); 
+		JFrame dWindow = new JFrame(); 
+		dWindow.setSize(800, 500); 
+		dWindow.setTitle(windowTitle); 
+		dWindow.setLayout(new BorderLayout()); 
 		dWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		// Specify closing behavior
-		dWindow.add(applet, "Center"); // Place applet into window
-		dWindow.setResizable(false); // Set Window non resizable
-		dWindow.setVisible(true); // Show the window
+		dWindow.add(applet, "Center"); 
+		dWindow.setResizable(false); 
+		dWindow.setVisible(true); 
 	}
 
-	/**
-	 * Initialize the applet. As recommended, the actual use of Swing components
-	 * takes place in the event-dispatching thread.
-	 */
 	public void init() {
 		try {
 			SwingUtilities.invokeAndWait(this);
@@ -125,43 +82,35 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		}
 	}
 
-	/**
-	 * Set up the applet's GUI. As recommended, the init method executes this in
-	 * the event-dispatching thread.
-	 */
 	public void run() {
 		setLayout(new BorderLayout());
 
-		// Add the button controls
+		
 		ButtonGroup group = new ButtonGroup();
 		group.add(voronoiButton);
 		group.add(delaunayButton);
 		JPanel buttonPanel = new JPanel();
-		// buttonPanel.add(voronoiButton);
-		// buttonPanel.add(delaunayButton);
+
 		buttonPanel.add(map1Button);
-		buttonPanel.add(new JLabel("          ")); // Spacing
+		buttonPanel.add(new JLabel("          "));
 		buttonPanel.add(map2Button);
 		this.add(buttonPanel, "North");
 
-		// Add the mouse-entry switches
+
 		JPanel switchPanel = new JPanel();
 		switchPanel.add(p1Label);
 		switchPanel.add(p1Score);
 		switchPanel.add(new JLabel("             "));
 		switchPanel.add(p2Label);
-		switchPanel.add(p2Score); // Spacing
+		switchPanel.add(p2Score); 
 		this.add(switchPanel, "South");
 
-		// get map choice here
 		mapChoice = 1;
 		delaunayPanel = new DelaunayPanel(this, mapChoice);
 
-		// Build the delaunay panel
 		delaunayPanel.setBackground(Color.gray);
 		this.add(delaunayPanel, "Center");
 
-		// Register the listeners
 		voronoiButton.addActionListener(this);
 		delaunayButton.addActionListener(this);
 		map1Button.addActionListener(this);
@@ -172,17 +121,12 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		delaunaySwitch.addMouseListener(this);
 		voronoiSwitch.addMouseListener(this);
 
-		// Set initial playerTurn
 		playerNo = 1;
 		turn=0;
 
-		// Initialize the radio buttons
 		voronoiButton.doClick();
 	}
 
-	/**
-	 * A button has been pressed; redraw the picture.
-	 */
 	public void actionPerformed(ActionEvent e) {
 		if (debug)
 			System.out.println(((AbstractButton) e.getSource()).getText());
@@ -198,9 +142,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		delaunayPanel.repaint();
 	}
 
-	/**
-	 * If entering a mouse-entry switch then redraw the picture.
-	 */
 	public void mouseEntered(MouseEvent e) {
 		currentSwitch = e.getComponent();
 		if (currentSwitch instanceof JLabel)
@@ -209,18 +150,12 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 			currentSwitch = null;
 	}
 
-	/**
-	 * If exiting a mouse-entry switch then redraw the picture.
-	 */
 	public void mouseExited(MouseEvent e) {
 		currentSwitch = null;
 		if (e.getComponent() instanceof JLabel)
 			delaunayPanel.repaint();
 	}
 
-	/**
-	 * If mouse has been pressed inside the delaunayPanel then add a new site.
-	 */
 	public void mousePressed(MouseEvent e) {
 		if (e.getSource() != delaunayPanel)
 			return;
@@ -262,20 +197,10 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		delaunayPanel.repaint();
 	}
 
-	/**
-	 * Not used, but needed for MouseListener.
-	 */
 	public void mouseReleased(MouseEvent e) {
 	}
 
 	public void mouseClicked(MouseEvent e) {
-	}
-
-	/**
-	 * @return true iff the "colorful" box is selected
-	 */
-	public boolean isColorful() {
-		return colorfulBox.isSelected();
 	}
 
 	/**
@@ -320,7 +245,6 @@ class DelaunayPanel extends JPanel {
 
 	private DelaunayAp controller; // Controller for DT
 	private Triangulation dt; // Delaunay triangulation
-	private Map<Object, Color> colorTable; // Remembers colors for display
 	private Triangle initialTriangle; // Initial triangle
 	private static int initialSize = 10000; // Size of initial triangle
 	private Graphics g; // Stored graphics context
@@ -389,7 +313,6 @@ class DelaunayPanel extends JPanel {
 		initialTriangle = new Triangle(new Pnt(-initialSize, -initialSize),
 				new Pnt(initialSize, -initialSize), new Pnt(0, initialSize));
 		dt = new Triangulation(initialTriangle);
-		colorTable = new HashMap<Object, Color>();
 	}
 
 	/**
@@ -410,28 +333,12 @@ class DelaunayPanel extends JPanel {
 		mapChoice = map;
 	}
 
-	/**
-	 * Get the color for the spcified item; generate a new color if necessary.
-	 * 
-	 * @param item
-	 *            we want the color for this item
-	 * @return item's color
-	 */
-	private Color getColor(Object item) {
-		if (colorTable.containsKey(item))
-			return colorTable.get(item);
-		Color color = new Color(Color.HSBtoRGB(random.nextFloat(), 1.0f, 1.0f));
-		colorTable.put(item, color);
-		return color;
-	}
-
-	/* Basic Drawing Methods */
 
 	/**
-	 * Draw a point.
+	 * Draw the boat.
 	 * 
 	 * @param point
-	 *            the Pnt to draw
+	 *            location of boat
 	 */
 	public void draw(Pnt point) {
 		int r = pointRadius;
@@ -546,50 +453,31 @@ class DelaunayPanel extends JPanel {
 					"map2.png");
 			g.drawImage(backgroundImage, 0, 0, null);
 		}
-		// If no colors then we can clear the color table
-		if (!controller.isColorful())
-			colorTable.clear();
 
-		// Draw the appropriate picture
 		if (controller.isVoronoi())
-			drawAllVoronoi(controller.isColorful(), true);
+			drawAllVoronoi(true);
 		else
-			drawAllDelaunay(controller.isColorful());
+			drawAllDelaunay();
 
-		// Draw any extra info due to the mouse-entry switches
 		temp = g.getColor();
 		g.setColor(Color.white);
 		if (controller.showingCircles())
 			drawAllCircles();
 		if (controller.showingDelaunay())
-			drawAllDelaunay(false);
+			drawAllDelaunay();
 		if (controller.showingVoronoi())
-			drawAllVoronoi(false, false);
+			drawAllVoronoi(false);
 		g.setColor(temp);
 	}
 
-	/**
-	 * Draw all the Delaunay triangles.
-	 * 
-	 * @param withFill
-	 *            true iff drawing Delaunay triangles with fill colors
-	 */
-	public void drawAllDelaunay(boolean withFill) {
+	public void drawAllDelaunay() {
 		for (Triangle triangle : dt) {
 			Pnt[] vertices = triangle.toArray(new Pnt[0]);
-			draw(vertices, withFill ? getColor(triangle) : null);
+			draw(vertices, null);
 		}
 	}
 
-	/**
-	 * Draw all the Voronoi cells.
-	 * 
-	 * @param withFill
-	 *            true iff drawing Voronoi cells with fill colors
-	 * @param withSites
-	 *            true iff drawing the site for each Voronoi cell
-	 */
-	public void drawAllVoronoi(boolean withFill, boolean withSites) {
+	public void drawAllVoronoi(boolean withSites) {
 		// Keep track of sites done; no drawing for initial triangles sites
 		HashSet<Pnt> done = new HashSet<Pnt>(initialTriangle);
 		player1.resetScore();
@@ -631,9 +519,6 @@ class DelaunayPanel extends JPanel {
 
 	}
 
-	/**
-	 * Draw all the empty circles (one for each triangle) of the DT.
-	 */
 	public void drawAllCircles() {
 		// Loop through all triangles of the DT
 		for (Triangle triangle : dt) {

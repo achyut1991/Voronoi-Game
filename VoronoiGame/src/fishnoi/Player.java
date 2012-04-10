@@ -1,4 +1,4 @@
-package delaunay;
+package fishnoi;
 
 public class Player {
 	private String name;

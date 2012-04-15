@@ -24,12 +24,6 @@ class Triangle extends ArraySet<Pnt> {
             throw new IllegalArgumentException("Triangle must have 3 vertices");
     }
 
-    @Override
-    public String toString () {
-        if (!moreInfo) return "Triangle" + idNumber;
-        return "Triangle" + idNumber + super.toString();
-    }
-
     public Pnt getVertexButNot (Pnt... badVertices) {
         Collection<Pnt> bad = Arrays.asList(badVertices);
         for (Pnt v: this) if (!bad.contains(v)) return v;

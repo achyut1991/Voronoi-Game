@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Label;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.Toolkit;
@@ -18,11 +17,8 @@ import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -40,7 +36,7 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		ActionListener, MouseListener {
 
 	private boolean debug = false; 
-	private Component currentSwitch = null; // Entry-switch that mouse is in
+	private Component currentFocus = null;
 
 	private static String windowTitle = "Fishnoi";
 	private JRadioButton voronoiButton = new JRadioButton("Voronoi Diagram");
@@ -54,9 +50,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 	private JLabel p2Label = new JLabel("Player2 Score: ");
 	public static JLabel p1Score = new JLabel("0");
 	public static JLabel p2Score = new JLabel("0");
-	private JLabel circleSwitch = new JLabel("Show Empty Circles");
-	private JLabel delaunaySwitch = new JLabel("Show Delaunay Edges");
-	private JLabel voronoiSwitch = new JLabel("Show Voronoi Edges");
 	private int playerNo;
 	private int mapChoice;
 	private int turn;
@@ -106,7 +99,7 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		this.add(switchPanel, "South");
 
 		mapChoice = 1;
-		delaunayPanel = new DelaunayPanel(this, mapChoice);
+		delaunayPanel = new DelaunayPanel(mapChoice);
 
 		delaunayPanel.setBackground(Color.gray);
 		this.add(delaunayPanel, "Center");
@@ -117,9 +110,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		map2Button.addActionListener(this);
 		colorfulBox.addActionListener(this);
 		delaunayPanel.addMouseListener(this);
-		circleSwitch.addMouseListener(this);
-		delaunaySwitch.addMouseListener(this);
-		voronoiSwitch.addMouseListener(this);
 
 		playerNo = 1;
 		turn=0;
@@ -143,15 +133,15 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 	}
 
 	public void mouseEntered(MouseEvent e) {
-		currentSwitch = e.getComponent();
-		if (currentSwitch instanceof JLabel)
+		currentFocus = e.getComponent();
+		if (currentFocus instanceof JLabel)
 			delaunayPanel.repaint();
 		else
-			currentSwitch = null;
+			currentFocus = null;
 	}
 
 	public void mouseExited(MouseEvent e) {
-		currentSwitch = null;
+		currentFocus = null;
 		if (e.getComponent() instanceof JLabel)
 			delaunayPanel.repaint();
 	}
@@ -210,27 +200,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		return voronoiButton.isSelected();
 	}
 
-	/**
-	 * @return true iff within circle switch
-	 */
-	public boolean showingCircles() {
-		return currentSwitch == circleSwitch;
-	}
-
-	/**
-	 * @return true iff within delaunay switch
-	 */
-	public boolean showingDelaunay() {
-		return currentSwitch == delaunaySwitch;
-	}
-
-	/**
-	 * @return true iff within voronoi switch
-	 */
-	public boolean showingVoronoi() {
-		return currentSwitch == voronoiSwitch;
-	}
-
 }
 
 /**
@@ -243,12 +212,10 @@ class DelaunayPanel extends JPanel {
 	public static Color delaunayColor = Color.green;
 	public static int pointRadius = 3;
 
-	private DelaunayAp controller; // Controller for DT
 	private Triangulation dt; // Delaunay triangulation
 	private Triangle initialTriangle; // Initial triangle
 	private static int initialSize = 10000; // Size of initial triangle
 	private Graphics g; // Stored graphics context
-	private Random random = new Random(); // Source of random numbers
 	private Pnt[] fullPolygon = { new Pnt(0, 0), new Pnt(800, 0),
 			new Pnt(800, 600), new Pnt(0, 600) };
 
@@ -305,8 +272,7 @@ class DelaunayPanel extends JPanel {
 	/**
 	 * Create and initialize the DT.
 	 */
-	public DelaunayPanel(DelaunayAp controller, int map) {
-		this.controller = controller;
+	public DelaunayPanel(int map) {
 		mapChoice = map;
 		player1 = new Player("Player 1");
 		player2 = new Player("Player 2");
@@ -434,16 +400,6 @@ class DelaunayPanel extends JPanel {
 		this.g = g;
 		g.setColor(Color.white);
 
-		// Flood the drawing area with a "background" color
-		Color temp = g.getColor();
-		/*
-		 * if (!controller.isVoronoi()) g.setColor(delaunayColor); else if
-		 * (dt.contains(initialTriangle)) g.setColor(this.getBackground()); else
-		 * g.setColor(voronoiColor); g.fillRect(0, 0, this.getWidth(),
-		 * this.getHeight()); g.setColor(temp);
-		 */
-
-		// Set background image
 		if (mapChoice == 1) {
 			Image backgroundImage = Toolkit.getDefaultToolkit().getImage(
 					"map1.png");
@@ -454,28 +410,11 @@ class DelaunayPanel extends JPanel {
 			g.drawImage(backgroundImage, 0, 0, null);
 		}
 
-		if (controller.isVoronoi())
-			drawAllVoronoi(true);
-		else
-			drawAllDelaunay();
+		drawAllVoronoi(true);
 
-		temp = g.getColor();
-		g.setColor(Color.white);
-		if (controller.showingCircles())
-			drawAllCircles();
-		if (controller.showingDelaunay())
-			drawAllDelaunay();
-		if (controller.showingVoronoi())
-			drawAllVoronoi(false);
-		g.setColor(temp);
 	}
 
-	public void drawAllDelaunay() {
-		for (Triangle triangle : dt) {
-			Pnt[] vertices = triangle.toArray(new Pnt[0]);
-			draw(vertices, null);
-		}
-	}
+
 
 	public void drawAllVoronoi(boolean withSites) {
 		// Keep track of sites done; no drawing for initial triangles sites

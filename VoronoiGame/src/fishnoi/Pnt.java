@@ -19,16 +19,6 @@ public class Pnt {
     }
 
     @Override
-    public String toString () {
-        if (coordinates.length == 0) return "Pnt()";
-        String result = "Pnt(" + coordinates[0];
-        for (int i = 1; i < coordinates.length; i++)
-            result = result + "," + coordinates[i];
-        result = result + ")";
-        return result;
-    }
-
-    @Override
     public boolean equals (Object other) {
         if (!(other instanceof Pnt)) return false;
         Pnt p = (Pnt) other;
@@ -173,18 +163,12 @@ public class Pnt {
         return determinant(matrix) / fact;
     }
 
+    /**
+     * To find the location of the calling point with respect to the point array
+     * @param simplex
+     * @return int array
+     */
     public int[] relation (Pnt[] simplex) {
-        /* In 2D, we compute the cross of this matrix:
-         *    1   1   1   1
-         *    p0  a0  b0  c0
-         *    p1  a1  b1  c1
-         * where (a, b, c) is the simplex and p is this Pnt. The result is a
-         * vector in which the first coordinate is the signed area (all signed
-         * areas are off by the same constant factor) of the simplex and the
-         * remaining coordinates are the *negated* signed areas for the
-         * simplices in which p is substituted for each of the vertices.
-         * Analogous results occur in higher dimensions.
-         */
         int dim = simplex.length - 1;
         if (this.dimension() != dim)
             throw new IllegalArgumentException("Dimension mismatch");
@@ -264,7 +248,7 @@ public class Pnt {
         Pnt[] matrix = new Pnt[dim];
         for (int i = 0; i < dim; i++)
             matrix[i] = simplex[i].bisector(simplex[i+1]);
-        Pnt hCenter = cross(matrix);      // Center in homogeneous coordinates
+        Pnt hCenter = cross(matrix);      
         double last = hCenter.coordinates[dim];
         double[] result = new double[dim];
         for (int i = 0; i < dim; i++) result[i] = hCenter.coordinates[i] / last;

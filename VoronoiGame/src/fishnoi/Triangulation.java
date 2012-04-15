@@ -30,10 +30,6 @@ public class Triangulation extends AbstractSet<Triangle> {
         return triGraph.nodeSet().size();
     }
 
-    @Override
-    public String toString () {
-        return "Triangulation with " + size() + " triangles";
-    }
 
     public boolean contains (Object triangle) {
         return triGraph.nodeSet().contains(triangle);
@@ -72,10 +68,9 @@ public class Triangulation extends AbstractSet<Triangle> {
         Triangle triangle = mostRecent;
         if (!this.contains(triangle)) triangle = null;
 
-        // Try a directed walk (this works fine in 2D, but can fail in 3D)
         Set<Triangle> visited = new HashSet<Triangle>();
         while (triangle != null) {
-            if (visited.contains(triangle)) { // This should never happen
+            if (visited.contains(triangle)) {
                 System.out.println("Warning: Caught in a locate loop");
                 break;
             }
@@ -100,12 +95,12 @@ public class Triangulation extends AbstractSet<Triangle> {
             throw new IllegalArgumentException("No containing triangle");
         if (triangle.contains(site)) return;
 
-        Set<Triangle> cavity = getCavity(site, triangle);
-        mostRecent = update(site, cavity);
+        Set<Triangle> toBeFlipped = checkLD(site, triangle);
+        mostRecent = update(site, toBeFlipped);
     }
 
-    private Set<Triangle> getCavity (Pnt site, Triangle triangle) {
-        Set<Triangle> encroached = new HashSet<Triangle>();
+    private Set<Triangle> checkLD (Pnt site, Triangle triangle) {
+        Set<Triangle> toBeFlipped = new HashSet<Triangle>();
         Queue<Triangle> toBeChecked = new LinkedList<Triangle>();
         Set<Triangle> marked = new HashSet<Triangle>();
         toBeChecked.add(triangle);
@@ -113,23 +108,22 @@ public class Triangulation extends AbstractSet<Triangle> {
         while (!toBeChecked.isEmpty()) {
             triangle = toBeChecked.remove();
             if (site.vsCircumcircle(triangle.toArray(new Pnt[0])) == 1)
-                continue; // Site outside triangle => triangle not in cavity
-            encroached.add(triangle);
-            // Check the neighbors
+                continue; 
+            toBeFlipped.add(triangle);
+            
             for (Triangle neighbor: triGraph.neighbors(triangle)){
                 if (marked.contains(neighbor)) continue;
                 marked.add(neighbor);
                 toBeChecked.add(neighbor);
             }
         }
-        return encroached;
+        return toBeFlipped;
     }
      
     private Triangle update (Pnt site, Set<Triangle> cavity) {
         Set<Set<Pnt>> boundary = new HashSet<Set<Pnt>>();
         Set<Triangle> theTriangles = new HashSet<Triangle>();
 
-        // Find boundary facets and adjacent triangles
         for (Triangle triangle: cavity) {
             theTriangles.addAll(neighbors(triangle));
             for (Pnt vertex: triangle) {
@@ -138,12 +132,10 @@ public class Triangulation extends AbstractSet<Triangle> {
                 else boundary.add(facet);
             }
         }
-        theTriangles.removeAll(cavity);        // Adj triangles only
+        theTriangles.removeAll(cavity); 
 
-        // Remove the cavity triangles from the triangulation
         for (Triangle triangle: cavity) triGraph.remove(triangle);
 
-        // Build each new triangle and add it to the triangulation
         Set<Triangle> newTriangles = new HashSet<Triangle>();
         for (Set<Pnt> vertices: boundary) {
             vertices.add(site);
@@ -152,14 +144,12 @@ public class Triangulation extends AbstractSet<Triangle> {
             newTriangles.add(tri);
         }
 
-        // Update the graph links for each new triangle
-        theTriangles.addAll(newTriangles);    // Adj triangle + new triangles
+        theTriangles.addAll(newTriangles);  
         for (Triangle triangle: newTriangles)
             for (Triangle other: theTriangles)
                 if (triangle.isNeighbor(other))
                     triGraph.add(triangle, other);
 
-        // Return one of the new triangles
         return newTriangles.iterator().next();
     }
 }

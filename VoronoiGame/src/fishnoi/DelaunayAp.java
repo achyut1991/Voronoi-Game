@@ -21,14 +21,12 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.AbstractButton;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 
 @SuppressWarnings("serial")
@@ -39,9 +37,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 	private Component currentFocus = null;
 
 	private static String windowTitle = "Fishnoi";
-	private JRadioButton voronoiButton = new JRadioButton("Voronoi Diagram");
-	private JRadioButton delaunayButton = new JRadioButton(
-			"Delaunay Triangulation");
 	private JButton map1Button = new JButton("Map 1");
 	private JButton map2Button = new JButton("Map 2");
 	private JCheckBox colorfulBox = new JCheckBox("More Colorful");
@@ -78,10 +73,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 	public void run() {
 		setLayout(new BorderLayout());
 
-		
-		ButtonGroup group = new ButtonGroup();
-		group.add(voronoiButton);
-		group.add(delaunayButton);
 		JPanel buttonPanel = new JPanel();
 
 		buttonPanel.add(map1Button);
@@ -104,8 +95,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 		delaunayPanel.setBackground(Color.gray);
 		this.add(delaunayPanel, "Center");
 
-		voronoiButton.addActionListener(this);
-		delaunayButton.addActionListener(this);
 		map1Button.addActionListener(this);
 		map2Button.addActionListener(this);
 		colorfulBox.addActionListener(this);
@@ -113,8 +102,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 
 		playerNo = 1;
 		turn=0;
-
-		voronoiButton.doClick();
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -192,14 +179,6 @@ public class DelaunayAp extends javax.swing.JApplet implements Runnable,
 
 	public void mouseClicked(MouseEvent e) {
 	}
-
-	/**
-	 * @return true iff doing Voronoi diagram.
-	 */
-	public boolean isVoronoi() {
-		return voronoiButton.isSelected();
-	}
-
 }
 
 /**
@@ -310,8 +289,8 @@ class DelaunayPanel extends JPanel {
 		int r = pointRadius;
 		int x = (int) point.coord(0);
 		int y = (int) point.coord(1);
-		Image img1 = Toolkit.getDefaultToolkit().getImage("oldfish.png");
-		Image img2 = Toolkit.getDefaultToolkit().getImage("newfish.png");
+		Image img1 = Toolkit.getDefaultToolkit().getImage("./oldfish.png");
+		Image img2 = Toolkit.getDefaultToolkit().getImage("./newfish.png");
 		g.fillOval(x - r, y - r, r + r, r + r);
 		if (point.getPlayerNo() == 1)
 			g.drawImage(img1, x - 25, y - 12, null);
@@ -402,21 +381,21 @@ class DelaunayPanel extends JPanel {
 
 		if (mapChoice == 1) {
 			Image backgroundImage = Toolkit.getDefaultToolkit().getImage(
-					"map1.png");
+					"./map1.png");
 			g.drawImage(backgroundImage, 0, 0, null);
 		} else if (mapChoice == 2) {
 			Image backgroundImage = Toolkit.getDefaultToolkit().getImage(
-					"map2.png");
+					"./map2.png");
 			g.drawImage(backgroundImage, 0, 0, null);
 		}
 
-		drawAllVoronoi(true);
+		drawAllVoronoi();
 
 	}
 
 
 
-	public void drawAllVoronoi(boolean withSites) {
+	public void drawAllVoronoi() {
 		// Keep track of sites done; no drawing for initial triangles sites
 		HashSet<Pnt> done = new HashSet<Pnt>(initialTriangle);
 		player1.resetScore();
@@ -443,15 +422,8 @@ class DelaunayPanel extends JPanel {
 				} else {
 					player2.updateScore(area);
 				}
-				if (withSites)
-					draw(site);
-				/*
-				 * System.out.println("Point (" + site.coord(0) + "," +
-				 * site.coord(1) + ") with voronoi area = " + area);
-				 */
+				draw(site);
 			}
-		// System.out.println("P1Score = " + player1.getScore());
-		// System.out.println("P2Score = " + player2.getScore());
 		DecimalFormat formatter = new DecimalFormat("#0.00");
 		DelaunayAp.p1Score.setText("" + formatter.format(player1.getScore()));
 		DelaunayAp.p2Score.setText("" + formatter.format(player2.getScore()));
@@ -545,6 +517,7 @@ class DelaunayPanel extends JPanel {
 		return a1;
 	}
 
+	@SuppressWarnings("unused")
 	private static Pnt[] traversePath(Shape s) {
 		PathIterator pit = s.getPathIterator(null);
 		List<Pnt> points = new ArrayList<Pnt>();
